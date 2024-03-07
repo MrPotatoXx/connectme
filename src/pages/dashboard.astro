@@ -1,0 +1,33 @@
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+const auth = getAuth(app);
+
+/* Check current session */
+const sessionCookie = Astro.cookies.get("session");
+if (!sessionCookie) {
+  return Astro.redirect("/signin");
+}
+const decodedCookie = await auth.verifySessionCookie(sessionCookie.value);
+const user = await auth.getUser(decodedCookie.uid);
+
+if (!user) {
+  return Astro.redirect("/signin");
+}
+---
+<Layout title="Dashboard">
+  <div class="bg-blueGray-50 min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+      <h1 class="text-3xl font-bold mb-4">Bienvenido {user.displayName}</h1>
+      <p class="text-lg mb-4">Aquí puedes agregar tus redes sociales.</p>
+      <div class="flex items-center space-x-4 mb-4">
+        <a href="/add-links" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:bg-blue-600 transition duration-300 ease-in-out">Agregar Links</a>
+      </div>
+      <form action="/api/auth/signout">
+        <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 focus:outline-none focus:bg-red-600 transition duration-300 ease-in-out">Cerrar sesión</button>
+      </form>
+    </div>
+  </div>
+</Layout>
